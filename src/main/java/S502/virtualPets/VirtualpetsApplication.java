@@ -1,4 +1,4 @@
-package S502.VIRTUALPETS;
+package S502.virtualPets;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

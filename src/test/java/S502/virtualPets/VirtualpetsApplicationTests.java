@@ -1,4 +1,4 @@
-package S502.VIRTUALPETS;
+package S502.virtualPets;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
