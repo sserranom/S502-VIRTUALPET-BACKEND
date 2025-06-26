@@ -2,10 +2,7 @@ package S502.virtualPets.persistence.entity;
 
 import S502.virtualPets.persistence.enums.PermissionsEnum;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Data
 @AllArgsConstructor
