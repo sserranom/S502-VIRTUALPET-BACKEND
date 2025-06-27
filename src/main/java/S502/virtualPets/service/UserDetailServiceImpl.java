@@ -1,5 +1,7 @@
 package S502.virtualPets.service;
 
+import S502.virtualPets.controller.dto.AuthLoginRequestDTO;
+import S502.virtualPets.controller.dto.AuthResponseDTO;
 import S502.virtualPets.persistence.entity.UserEntity;
 import S502.virtualPets.persistence.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +43,10 @@ public class UserDetailServiceImpl implements UserDetailsService {
                 userEntity.isCredentialNoExpired(),
                 userEntity.isAccountNoLocked(),
                 authorityList);
+
+    }
+
+    public AuthResponseDTO loginUser(AuthLoginRequestDTO authLoginRequestDTO){
 
     }
 }

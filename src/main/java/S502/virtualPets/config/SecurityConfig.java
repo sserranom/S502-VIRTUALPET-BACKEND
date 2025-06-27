@@ -1,6 +1,10 @@
 package S502.virtualPets.config;
 
+import S502.virtualPets.config.filter.JwtTokenValidator;
 import S502.virtualPets.service.UserDetailServiceImpl;
+import S502.virtualPets.utils.JwtUtils;
+import org.apache.catalina.webresources.JarWarResource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -16,11 +20,15 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
+
+    @Autowired
+    private JwtUtils jwtUtils;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
@@ -31,6 +39,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(http -> {
                     http.anyRequest().denyAll();
                 })
+                .addFilterBefore(new JwtTokenValidator(jwtUtils), BasicAuthenticationFilter.class)
                 .build();
     }
 
