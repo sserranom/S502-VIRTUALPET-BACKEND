@@ -1,8 +1,8 @@
 package S502.virtualPets.controller;
 
-import S502.virtualPets.controller.dto.AuthCreateUserRequestDTO;
-import S502.virtualPets.controller.dto.AuthLoginRequestDTO;
-import S502.virtualPets.controller.dto.AuthResponseDTO;
+import S502.virtualPets.dto.AuthCreateUserRequestDTO;
+import S502.virtualPets.dto.AuthLoginRequestDTO;
+import S502.virtualPets.dto.AuthResponseDTO;
 import S502.virtualPets.service.UserDetailServiceImpl;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;

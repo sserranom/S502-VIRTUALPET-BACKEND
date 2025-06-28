@@ -1,4 +1,4 @@
-package S502.virtualPets.controller.dto;
+package S502.virtualPets.dto;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
