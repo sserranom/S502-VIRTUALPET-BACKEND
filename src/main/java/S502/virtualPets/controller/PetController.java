@@ -4,6 +4,13 @@ import S502.virtualPets.dto.CreatePetRequestDTO;
 import S502.virtualPets.dto.PetResponseDTO;
 import S502.virtualPets.dto.UpdatePetRequestDTO;
 import S502.virtualPets.service.PetService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.hibernate.sql.Update;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,15 +20,28 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 
 @RestController
 @RequestMapping("/api/pets")
+@Tag(name = "Virtual pets", description = "Endpoints for virtual pet management.")
+@SecurityRequirement(name = "bearerAuth")
 public class PetController {
 
     @Autowired
     private PetService petService;
 
+    @PostMapping
+    @Operation(summary = "Create a new pet", description = "Create a virtual pet associated with the authenticated user.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Pet successfully created.",
+                    content = @Content(schema = @Schema(implementation = PetResponseDTO.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid request (eg. incomplete pet data).",
+                    content = @Content(schema = @Schema(implementation = Map.class))),
+            @ApiResponse(responseCode = "401", description = "Not authenticated",
+                    content = @Content(schema = @Schema(implementation = Map.class)))
+    })
     public ResponseEntity<PetResponseDTO> createPet (@RequestBody @Valid CreatePetRequestDTO createPetRequestDTO){
 
         PetResponseDTO createPed = petService.createPet(createPetRequestDTO);
