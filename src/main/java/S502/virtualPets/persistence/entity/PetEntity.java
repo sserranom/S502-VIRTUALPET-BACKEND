@@ -51,7 +51,7 @@ public class PetEntity {
 
     @NotNull(message = "The level of hunger cannot be null.")
     @Min(value = 0, message = "The energy level cannot be less than 0.")
-    @Max(value = 100, message = "The energy level cannot be less than 100.")
+    @Max(value = 100, message = "The energy level cannot be greater than 100.")
     @Column(nullable = false)
     @Builder.Default
     private Integer hungerLevel = 0;
