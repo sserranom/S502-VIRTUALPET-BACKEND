@@ -43,7 +43,6 @@ public class PetController {
                     content = @Content(schema = @Schema(implementation = Map.class)))
     })
     public ResponseEntity<PetResponseDTO> createPet (@RequestBody @Valid CreatePetRequestDTO createPetRequestDTO){
-
         PetResponseDTO createPed = petService.createPet(createPetRequestDTO);
         return new ResponseEntity<>(createPed, HttpStatus.CREATED);
 
@@ -51,35 +50,71 @@ public class PetController {
 
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Get all pets (only admin)", description = "It allows administrators to see all pets in the system.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "List of all pets.",
+                    content = @Content(schema = @Schema(implementation = PetResponseDTO.class))),
+            @ApiResponse(responseCode = "401", description = "Not authenticated",
+                    content = @Content(schema = @Schema(implementation = Map.class))),
+            @ApiResponse(responseCode = "403", description = "Denied access (it is not admin).",
+                    content = @Content(schema = @Schema(implementation = Map.class)))
+    })
     public ResponseEntity<List<PetResponseDTO>> getAllPets(){
-
         List<PetResponseDTO> pets = petService.getAllPets();
         return new ResponseEntity<>(pets,HttpStatus.OK);
 
     }
 
     @GetMapping("/my-pets")
-    @PreAuthorize("hasRole('USER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @Operation(summary = "Get my pets", description = "Get all the authenticated user pets.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User pet list.",
+                    content = @Content(schema = @Schema(implementation = PetResponseDTO.class))),
+            @ApiResponse(responseCode = "401", description = "Not authenticated",
+                    content = @Content(schema = @Schema(implementation = Map.class)))
+    })
     public ResponseEntity<List<PetResponseDTO>> getMyPets(){
-
         List<PetResponseDTO> pets = petService.getMyPets();
         return new ResponseEntity<>(pets, HttpStatus.OK);
 
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('USER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @Operation(summary = "Get pet by ID", description = "Obtains a specific pet for his id. Users can only see their own, any administrators.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Pet found.",
+                    content = @Content(schema = @Schema(implementation = PetResponseDTO.class))),
+            @ApiResponse(responseCode = "401", description = "Not authenticated",
+                    content = @Content(schema = @Schema(implementation = Map.class))),
+            @ApiResponse(responseCode = "403", description = "Denied access (not owner or admin).",
+                    content = @Content(schema = @Schema(implementation = Map.class))),
+            @ApiResponse(responseCode = "404", description = "Pet not found.",
+                    content = @Content(schema = @Schema(implementation = Map.class)))
+    })
     public ResponseEntity<PetResponseDTO> getPetById (@PathVariable Long id){
-
         PetResponseDTO pet = petService.getPetById(id);
         return new ResponseEntity<>(pet, HttpStatus.OK);
 
     }
 
-    @GetMapping("/{id}")
-    @PreAuthorize("hasRole('USER', 'ADMIN')")
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @Operation(summary = "Update pet by ID", description = "Update an existing pet for your ID. Users can only update their own, any administrators.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Pet updated successfully.",
+                    content = @Content(schema = @Schema(implementation = PetResponseDTO.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid request.",
+                    content = @Content(schema = @Schema(implementation = Map.class))),
+            @ApiResponse(responseCode = "401", description = "Not authenticated",
+                    content = @Content(schema = @Schema(implementation = Map.class))),
+            @ApiResponse(responseCode = "403", description = "Access denied.",
+                    content = @Content(schema = @Schema(implementation = Map.class))),
+            @ApiResponse(responseCode = "404", description = "Pet not found.",
+                    content = @Content(schema = @Schema(implementation = Map.class)))
+    })
     public ResponseEntity<PetResponseDTO> updatePet (@PathVariable Long id, @RequestBody @Valid UpdatePetRequestDTO updatePetRequestDTO){
-
         PetResponseDTO updatePet = petService.updatePet(id, updatePetRequestDTO);
         return new ResponseEntity<>(updatePet, HttpStatus.OK);
 
@@ -87,6 +122,16 @@ public class PetController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @Operation(summary = "Remove pet by ID", description = "Eliminates an existing pet for your ID. Users can only eliminate their own, any administrators.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Pet successfully eliminated."),
+            @ApiResponse(responseCode = "401", description = "Not authenticated.",
+                    content = @Content(schema = @Schema(implementation = Map.class))),
+            @ApiResponse(responseCode = "403", description = "Access denied.",
+                    content = @Content(schema = @Schema(implementation = Map.class))),
+            @ApiResponse(responseCode = "404", description = "Pet not found.",
+                    content = @Content(schema = @Schema(implementation = Map.class)))
+    })
     public ResponseEntity<Void> deletePet(@PathVariable Long id) {
         petService.deletePet(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
