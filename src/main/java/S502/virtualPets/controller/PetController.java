@@ -12,7 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.hibernate.sql.Update;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +27,7 @@ import java.util.Map;
 @RequestMapping("/api/pets")
 @Tag(name = "Virtual pets", description = "Endpoints for virtual pet management.")
 @SecurityRequirement(name = "bearerAuth")
+@Slf4j
 public class PetController {
 
     @Autowired
@@ -43,8 +44,10 @@ public class PetController {
                     content = @Content(schema = @Schema(implementation = Map.class)))
     })
     public ResponseEntity<PetResponseDTO> createPet (@RequestBody @Valid CreatePetRequestDTO createPetRequestDTO){
-        PetResponseDTO createPed = petService.createPet(createPetRequestDTO);
-        return new ResponseEntity<>(createPed, HttpStatus.CREATED);
+        log.info("Post request received to create pet: {}", createPetRequestDTO.name());
+        PetResponseDTO createPet = petService.createPet(createPetRequestDTO);
+        log.info("Pet successfully created with ID: {}", createPet.id());
+        return new ResponseEntity<>(createPet, HttpStatus.CREATED);
 
     }
 
@@ -60,7 +63,9 @@ public class PetController {
                     content = @Content(schema = @Schema(implementation = Map.class)))
     })
     public ResponseEntity<List<PetResponseDTO>> getAllPets(){
+        log.info("GET petition received to obtain all pets (administrator access).");
         List<PetResponseDTO> pets = petService.getAllPets();
+        log.info("returned {} pets.", pets.size());
         return new ResponseEntity<>(pets,HttpStatus.OK);
 
     }
@@ -75,7 +80,9 @@ public class PetController {
                     content = @Content(schema = @Schema(implementation = Map.class)))
     })
     public ResponseEntity<List<PetResponseDTO>> getMyPets(){
+        log.info("GET petition received to obtain the authenticated user pets");
         List<PetResponseDTO> pets = petService.getMyPets();
+        log.info("Returned {} Pets for the current user.", pets.size());
         return new ResponseEntity<>(pets, HttpStatus.OK);
 
     }
@@ -94,7 +101,9 @@ public class PetController {
                     content = @Content(schema = @Schema(implementation = Map.class)))
     })
     public ResponseEntity<PetResponseDTO> getPetById (@PathVariable Long id){
+        log.info("GET petition received for pet with ID: {}", id);
         PetResponseDTO pet = petService.getPetById(id);
+        log.info("Pet with ID {} successfully recovered.", id);
         return new ResponseEntity<>(pet, HttpStatus.OK);
 
     }
@@ -115,8 +124,10 @@ public class PetController {
                     content = @Content(schema = @Schema(implementation = Map.class)))
     })
     public ResponseEntity<PetResponseDTO> updatePet (@PathVariable Long id, @RequestBody @Valid UpdatePetRequestDTO updatePetRequestDTO){
-        PetResponseDTO updatePet = petService.updatePet(id, updatePetRequestDTO);
-        return new ResponseEntity<>(updatePet, HttpStatus.OK);
+        log.info("PUT petition received to update pet with ID: {}. Info: {}", id, updatePetRequestDTO);
+        PetResponseDTO updatedPet = petService.updatePet(id, updatePetRequestDTO);
+        log.info("Pet with ID {} updated successfully.", id);
+        return new ResponseEntity<>(updatedPet, HttpStatus.OK);
 
     }
 
@@ -133,7 +144,9 @@ public class PetController {
                     content = @Content(schema = @Schema(implementation = Map.class)))
     })
     public ResponseEntity<Void> deletePet(@PathVariable Long id) {
+        log.info("Petition Delete received for pet with ID: {}", id);
         petService.deletePet(id);
+        log.info("Pet with ID {} successfully eliminated.", id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
