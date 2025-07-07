@@ -3,6 +3,8 @@ package S502.virtualPets.config;
 import S502.virtualPets.config.filter.JwtTokenValidator;
 import S502.virtualPets.service.UserDetailServiceImpl;
 import S502.virtualPets.utils.JwtUtils;
+import S502.virtualPets.persistence.repository.UserRepository;
+import S502.virtualPets.persistence.repository.RoleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,27 +36,45 @@ public class SecurityConfig {
 
     @Autowired
     private JwtUtils jwtUtils;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private RoleRepository roleRepository;
+    @Bean
+    public JwtTokenValidator jwtTokenValidator(UserDetailServiceImpl userDetailService) {
+        // El constructor de JwtTokenValidator espera JwtUtils y UserDetailServiceImpl
+        return new JwtTokenValidator(jwtUtils, userDetailService);
+    }
+
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity, JwtTokenValidator jwtTokenValidator) throws Exception {
         return httpSecurity
                 .csrf(csrf -> csrf.disable())
                 .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> {
                     authorize.requestMatchers(HttpMethod.POST, "/auth/**").permitAll();
-                    authorize.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll();
+
+                    authorize.requestMatchers(
+                            "/swagger-ui/**",
+                            "/v3/api-docs/**",
+                            "/swagger-resources/**",
+                            "/swagger-resources/configuration/ui",
+                            "/swagger-resources/configuration/security",
+                            "/webjars/**"
+                    ).permitAll();
                     authorize.anyRequest().authenticated();
                 })
-                .addFilterBefore(new JwtTokenValidator(jwtUtils), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtTokenValidator, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
     @Bean
-    public CorsConfigurationSource corsConfigurationSource(){
+    public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("http://localhost:5173"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 
@@ -66,7 +86,6 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
-
     }
 
     @Bean
@@ -75,7 +94,6 @@ public class SecurityConfig {
         provider.setPasswordEncoder(passwordEncoder());
         provider.setUserDetailsService(userDetailService);
         return provider;
-
     }
 
     @Bean
@@ -83,4 +101,8 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+    @Bean
+    public UserDetailServiceImpl userDetailService(UserRepository userRepository, JwtUtils jwtUtils, PasswordEncoder passwordEncoder, RoleRepository roleRepository) {
+        return new UserDetailServiceImpl(userRepository, jwtUtils, passwordEncoder, roleRepository);
+    }
 }

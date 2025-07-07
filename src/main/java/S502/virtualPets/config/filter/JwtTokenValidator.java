@@ -1,5 +1,6 @@
 package S502.virtualPets.config.filter;
 
+import S502.virtualPets.service.UserDetailServiceImpl;
 import S502.virtualPets.utils.JwtUtils;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import jakarta.servlet.FilterChain;
@@ -7,25 +8,23 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
-import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.PrimitiveIterator;
 
 public class JwtTokenValidator extends OncePerRequestFilter {
 
-    private JwtUtils jwtUtils;
+    private final JwtUtils jwtUtils;
+    private final UserDetailServiceImpl userDetailService;
 
-    public JwtTokenValidator(JwtUtils jwtUtils){
+    public JwtTokenValidator(JwtUtils jwtUtils, UserDetailServiceImpl userDetailService){
         this.jwtUtils = jwtUtils;
+        this.userDetailService = userDetailService;
     }
 
     @Override
@@ -33,23 +32,31 @@ public class JwtTokenValidator extends OncePerRequestFilter {
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
 
-        String jwtToken = request.getHeader(HttpHeaders.AUTHORIZATION);
+        String jwtToken = request.getHeader("Authorization");
 
-        if (jwtToken != null) {
+        if (jwtToken != null && jwtToken.startsWith("Bearer ")) {
             jwtToken = jwtToken.substring(7);
 
-            DecodedJWT decodedJWT = jwtUtils.validateToken(jwtToken);
+            try {
+                DecodedJWT decodedJWT = jwtUtils.validateToken(jwtToken);
+                String username = jwtUtils.extractUsername(decodedJWT);
 
-            String username = jwtUtils.extractUsername(decodedJWT);
-            String stringAuthorities = jwtUtils.getSpecificClaim(decodedJWT, "authorities").asString();
+                UserDetails userDetails = userDetailService.loadUserByUsername(username);
 
-            Collection<? extends GrantedAuthority> authorities = AuthorityUtils.commaSeparatedStringToAuthorityList(stringAuthorities);
+                Authentication authenticationToken = new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities()
+                );
 
-            SecurityContext context = SecurityContextHolder.createEmptyContext();
-            Authentication authenticationToken = new UsernamePasswordAuthenticationToken(username, null, authorities);
-            context.setAuthentication(authenticationToken);
-            SecurityContextHolder.setContext(context);
+                SecurityContext context = SecurityContextHolder.createEmptyContext();
+                context.setAuthentication(authenticationToken);
+                SecurityContextHolder.setContext(context);
 
+            } catch (Exception e) {
+                SecurityContextHolder.clearContext();
+
+            }
         }
         filterChain.doFilter(request, response);
     }
