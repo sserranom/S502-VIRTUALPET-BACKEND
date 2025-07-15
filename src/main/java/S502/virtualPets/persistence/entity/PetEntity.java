@@ -34,7 +34,7 @@ public class PetEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
     @Builder.Default
-    private PetTypeEnum petType = PetTypeEnum.SAN_BERNARDO;
+    private PetTypeEnum petType = PetTypeEnum.GOKU;
 
     @NotNull(message = "The mascot's encouragement cannot be null")
     @Enumerated(EnumType.STRING)
@@ -54,7 +54,7 @@ public class PetEntity {
     @Max(value = 100, message = "The energy level cannot be greater than 100.")
     @Column(nullable = false)
     @Builder.Default
-    private Integer hungerLevel = 0;
+    private Integer hungerLevel = 50;
 
     @NotNull(message = "The pet must be associated with a user.")
     @ManyToOne(fetch = FetchType.LAZY)
