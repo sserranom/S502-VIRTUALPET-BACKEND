@@ -44,18 +44,6 @@ RESTful API for virtual pet management, developed with Java 21 and Spring Boot 3
 
 ---
 
-## 🧪 Pruebas con Postman
-
-> La colección Postman se incluye en el repositorio (`postman/VirtualPetsAPI.postman_collection.json`).
-
-- Registro: `/auth/register`
-- Login: `/auth/authenticate`
-- Rutas públicas y protegidas
-- Validación de roles: `USER` puede leer, `ADMIN` puede modificar
-
----
-
-
 ## 🔄 Endpoints Principales
 
 | Método | Endpoint               | Descripción                 | Rol requerido |
