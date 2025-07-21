@@ -43,7 +43,6 @@ public class SecurityConfig {
 
     @Bean
     public JwtTokenValidator jwtTokenValidator(UserDetailServiceImpl userDetailService) {
-        // El constructor de JwtTokenValidator espera JwtUtils y UserDetailServiceImpl
         return new JwtTokenValidator(jwtUtils, userDetailService);
     }
 
@@ -54,7 +53,6 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults()) // Habilita CORS usando la configuración del bean corsConfigurationSource()
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> {
-                    // Rutas públicas (no requieren autenticación)
                     authorize.requestMatchers(HttpMethod.POST, "/auth/**").permitAll();
 
                     authorize.requestMatchers(
