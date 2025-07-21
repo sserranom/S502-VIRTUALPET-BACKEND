@@ -31,54 +31,44 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true) // Habilita @PreAuthorize y @PostAuthorize
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
-    // Inyecta los componentes que Spring gestiona como @Service o @Repository.
-    // Estos @Autowired se resolverán automáticamente por Spring.
     @Autowired
     private UserRepository userRepository;
     @Autowired
     private RoleRepository roleRepository;
     @Autowired
-    private JwtUtils jwtUtils; // JwtUtils es un @Component
+    private JwtUtils jwtUtils;
 
-
-    // Definimos JwtTokenValidator como un @Bean para que Spring pueda encontrarlo.
     @Bean
     public JwtTokenValidator jwtTokenValidator(UserDetailServiceImpl userDetailService) {
         // El constructor de JwtTokenValidator espera JwtUtils y UserDetailServiceImpl
         return new JwtTokenValidator(jwtUtils, userDetailService);
     }
 
-
-    // ¡CORRECCIÓN CLAVE! Inyectamos JwtTokenValidator directamente como parámetro aquí.
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity, JwtTokenValidator jwtTokenValidator) throws Exception {
         return httpSecurity
-                .csrf(csrf -> csrf.disable()) // Deshabilita CSRF para APIs REST sin estado
+                .csrf(csrf -> csrf.disable())
                 .cors(Customizer.withDefaults()) // Habilita CORS usando la configuración del bean corsConfigurationSource()
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // API sin estado
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> {
                     // Rutas públicas (no requieren autenticación)
-                    authorize.requestMatchers(HttpMethod.POST, "/auth/**").permitAll(); // Login y registro
+                    authorize.requestMatchers(HttpMethod.POST, "/auth/**").permitAll();
 
-                    // ¡CRUCIAL PARA SWAGGER UI! Permite el acceso a las rutas de documentación
-                    // Estas rutas deben estar ANTES de cualquier 'anyRequest().authenticated()'
                     authorize.requestMatchers(
-                            "/swagger-ui/**",          // Interfaz de usuario de Swagger
-                            "/v3/api-docs/**",         // Definición OpenAPI en formato JSON/YAML
-                            "/swagger-resources/**",   // Recursos de Swagger
-                            "/swagger-resources/configuration/ui", // Configuración de UI
-                            "/swagger-resources/configuration/security", // Configuración de seguridad
-                            "/webjars/**"              // Recursos estáticos de webjars (ej. jQuery, Bootstrap)
+                            "/swagger-ui/**",
+                            "/v3/api-docs/**",
+                            "/swagger-resources/**",
+                            "/swagger-resources/configuration/ui",
+                            "/swagger-resources/configuration/security",
+                            "/webjars/**"
                     ).permitAll();
 
-                    // Rutas protegidas: Cualquier otra petición requiere autenticación
                     authorize.anyRequest().authenticated();
                 })
-                // Añade tu filtro JWT antes del filtro de autenticación de usuario y contraseña de Spring Security
-                // ¡CORRECCIÓN CLAVE! Usa el bean inyectado directamente como parámetro.
+
                 .addFilterBefore(jwtTokenValidator, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
@@ -86,13 +76,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Permite los orígenes de tu frontend. Si tienes más, añádelos aquí.
         configuration.setAllowedOrigins(List.of("http://localhost:5173"));
-        // Métodos HTTP permitidos para las peticiones CORS
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")); // Añadido PATCH
-        // Cabeceras permitidas (ej. Authorization, Content-Type)
-        configuration.setAllowedHeaders(List.of("*")); // Permite todas las cabeceras
-        // Permite el envío de credenciales (ej. cookies, headers de autorización)
+        configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -118,8 +104,6 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // Definir UserDetailServiceImpl como un bean para que Spring lo gestione.
-    // Sus dependencias se pasan como parámetros, resolviendo la circularidad.
     @Bean
     public UserDetailServiceImpl userDetailService(UserRepository userRepository, JwtUtils jwtUtils, PasswordEncoder passwordEncoder, RoleRepository roleRepository) {
         return new UserDetailServiceImpl(userRepository, jwtUtils, passwordEncoder, roleRepository);
